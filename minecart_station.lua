@@ -209,12 +209,13 @@ for _, stationId in pairs(stationIds) do
         print("Requesting station info from: " .. stationId)
         -- send station list requests
         rednet.send(stationId, "_", config.stationListProtocal)
-        local senderId, station, protocol = rednet.receive(config.stationListProtocal, 5)
+        local senderId, message, protocol = rednet.receive(config.stationListProtocal, 5)
         if senderId == stationId and protocol == config.stationListProtocal then
-            print("Recieved station info from: " .. senderId)
+            local station = textutils.unserialize(message)
             if station.id == nil or station.index == nil or station.name == nil then
-                print(station)
+                print("Unknown: " .. message)
             else
+                print("Recieved: " .. station.name)
                 table.insert(stations, station)
             end
         end

@@ -201,10 +201,10 @@ local ticketStation1 = TicketStation:new(monitors[1], config.indicator1)
 
 -- fetch station list
 local stations = {}
-local stationIds = rednet.lookup(config.stationProtocal)
-for _, stationId in ipairs(stationIds) do
+local stationIds = { rednet.lookup(config.stationProtocal) }
+for _, stationId in pairs(stationIds) do
     -- send station list requests
-    rednet.send(stationId, "", config.stationListProtocal)
+    rednet.send(stationId, "_", config.stationListProtocal)
     local senderId, station, protocol = rednet.receive(config.stationListProtocal)
     if senderId == stationId then
         table.insert(stations, station)

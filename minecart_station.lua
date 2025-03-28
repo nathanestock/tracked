@@ -212,9 +212,9 @@ function TicketStation:updateStations(stations)
 end
 
 -- get monitors, there must be 2
-local monitors = peripheral.find("monitor")
+local monitors = { peripheral.find("monitor") }
 
-if not monitors or #monitors < 2 then
+if not #monitors < 2 then
     error("Two monitors required", 0)
 end
 

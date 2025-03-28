@@ -203,10 +203,12 @@ local ticketStation1 = TicketStation:new(monitors[1], config.indicator1)
 local stations = {}
 local stationIds = { rednet.lookup(config.stationProtocal) }
 for _, stationId in pairs(stationIds) do
+    print("Requesting station info from: " .. stationId)
     -- send station list requests
     rednet.send(stationId, "_", config.stationListProtocal)
-    local senderId, station, protocol = rednet.receive(config.stationListProtocal)
-    if senderId == stationId then
+    local senderId, station, protocol = rednet.receive(config.stationListProtocal, 5)
+    if senderId == stationId and protocol == config.stationListProtocal then
+        print("Recieved station info from: " .. station.name)
         table.insert(stations, station)
     end
 end

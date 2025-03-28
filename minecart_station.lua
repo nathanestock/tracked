@@ -200,10 +200,7 @@ function TicketStation:new(monitor)
         :setSelectionColor(config.stationColor)
         :onSelect(function(self, event, item)
             local stopId = item.args[1].id
-            if not self.debounce then
-                self.debounce = true
-                parallel.waitForAny(function() sleep(0.5) self.debounce = false end, function() selectStop(stopId) end)
-            end
+            selectStop(stopId)
         end)
 
     local o = { monitor = monitor, mainFrame = mainFrame, ticketList = ticketList, stationList = stationList }

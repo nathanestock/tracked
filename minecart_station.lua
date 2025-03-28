@@ -208,8 +208,12 @@ for _, stationId in pairs(stationIds) do
     rednet.send(stationId, "_", config.stationListProtocal)
     local senderId, station, protocol = rednet.receive(config.stationListProtocal, 5)
     if senderId == stationId and protocol == config.stationListProtocal then
-        print("Recieved station info from: " .. station.name)
-        table.insert(stations, station)
+        print("Recieved station info from: " .. senderId)
+        if station.id == nil or station.index == nil or station.name == nil then
+            print(station)
+        else
+            table.insert(stations, station)
+        end
     end
 end
 

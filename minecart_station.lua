@@ -155,17 +155,6 @@ local function selectStop(stopId)
     end
 end
 
-local function debounce(func)
-    local last = 0
-    return function(...)
-        local now = os.clock()
-        if now - last > 0.5 then
-            last = now
-            return func(...)
-        end
-    end
-end
-
 local TicketStation = { monitor = nil, mainFrame = nil, ticketList = nil, stationList = nil }
 function TicketStation:new(monitor)
     local mainFrame = basalt.addMonitor()
@@ -210,7 +199,10 @@ function TicketStation:new(monitor)
         :setSelectionColor(config.stationColor)
         :onSelect(function(self, event, item)
             local stopId = item.args[1].id
-            debounce(function () selectStop(stopId) end)
+            if not self.debounce then
+                self.debounce = true
+                parallel.waitForAny(function() sleep(0.5) self.debounce = false end, function() selectStop(stopId) end)
+            end
         end)
 
     local o = { monitor = monitor, mainFrame = mainFrame, ticketList = ticketList, stationList = stationList }

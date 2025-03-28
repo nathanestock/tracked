@@ -92,6 +92,8 @@ local playerList = {}
 local function sendTicket(stopId, playerName)
     print("Sent: " .. playerName .. " | " .. stopId .. " | " .. textutils.formatTime(os.time()))
     rednet.send(stopId, playerName, config.stationProtocal)
+
+    os.queueEvent("indicator1")
 end
 
 local function selectStop(stopId)
@@ -276,6 +278,21 @@ local function purgePlayerEntries()
     end
 end
 
+local indicator1 = peripheral.wrap(config.indicator1)
+local indicator2 = peripheral.wrap(config.indicator2)
+
+local function handleIndicator(indicator, direction, name)
+    while true do
+        local event = os.pullEvent(name)
+        indicator.setOutput(direction, true)
+        sleep(3)
+        indicator.setOutput(direction, false)
+    end
+end
+
 -- Start the async functions
 parallel.waitForAny(basalt.autoUpdate, function() handleDetectorInput(detector1, config.direction1, control1) end,
-function() handleDetectorInput(detector2, config.direction2, control2) end, purgePlayerEntries, handleRednet)
+    function() handleDetectorInput(detector2, config.direction2, control2) end,
+    function() handleIndicator(indicator1, config.direction2, "indicator1") end,
+    function() handleIndicator(indicator2, config.direction1, "indicator2") end
+, purgePlayerEntries, handleRednet)

@@ -196,8 +196,8 @@ function TicketStation:new(monitor)
         :setSelectionColor(config.stationColor)
         :onSelect(function(self, event, item)
             print(textutils.serialize(item))
-            --[[ local stopId = item.args.id
-            selectStop(stopId) ]]
+            local stopId = item.args[1].id
+            selectStop(stopId)
         end)
 
     local o = { monitor = monitor, mainFrame = mainFrame, ticketList = ticketList, stationList = stationList }

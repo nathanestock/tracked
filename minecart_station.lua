@@ -16,8 +16,8 @@ local defaultConfig = {
 }
 
 -- check if basalt is installed, if not install it
-if not fs.exists("basalt") then
-    shell.run("wget", "run", "https://basalt.madefor.cc/install.lua", "release", "latest.lua")
+if not fs.exists("basalt.lua") then
+    shell.run("wget", "https://github.com/Pyroxenium/Basalt/releases/download/v1.7/basalt.lua")
 end
 
 local basalt = require("basalt")
@@ -156,7 +156,7 @@ end
 
 local TicketStation = { monitor = nil, mainFrame = nil, ticketList = nil, stationList = nil }
 function TicketStation:new(monitor)
-    local mainFrame = basalt.addMonitor():setBackground(colors.black)
+    local mainFrame = basalt.addMonitor()
     mainFrame:setMonitor(monitor)
     -- station name with color background
     mainFrame:addLabel()
@@ -171,24 +171,24 @@ function TicketStation:new(monitor)
         :setText("Incoming")
         :setPosition(1, 2)
         :setSize("parent.w", 1)
-        :setForeground(colors.black)
-        :setBackground(colors.gray)
+        :setForeground(colors.lightGray)
+        :setBackground(colors.black)
     local ticketWrapper = mainFrame:addScrollableFrame()
         :setPosition(1, 3)
-        :setSize("parent.w", "parent.h - 4")
+        :setSize("parent.w", "parent.h/2 - 2")
     local ticketList = ticketWrapper:addList()
         :setPosition(1, 1)
         :setSize("parent.w", "parent.h")
     -- station list
     mainFrame:addLabel()
         :setText("Stations")
-        :setPosition(1, "parent.h - 1")
+        :setPosition(1, "parent.h/2 + 1")
         :setSize("parent.w", 1)
-        :setForeground(colors.black)
-        :setBackground(colors.gray)
+        :setForeground(colors.lightGray)
+        :setBackground(colors.black)
     local stationWrapper = mainFrame:addScrollableFrame()
-        :setPosition(1, "parent.h - 4")
-        :setSize("parent.w", "parent.h - 5")
+        :setPosition(1, "parent.h/2 + 2")
+        :setSize("parent.w", "parent.h/2 - 2")
     local stationList = stationWrapper:addList()
         :setPosition(1, 1)
         :setSize("parent.w", "parent.h")
@@ -220,6 +220,10 @@ end
 
 local ticketStation1 = TicketStation:new(monitors[1])
 local ticketStation2 = TicketStation:new(monitors[2])
+
+-- add test stations
+ticketStation1:updateStations({ "Station 1", "Station 2", "Station 3" })
+ticketStation2:updateStations({ "Station 1", "Station 2", "Station 3" })
 
 -- Function to handle rednet messages
 local function handleRednet()

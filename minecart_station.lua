@@ -214,7 +214,7 @@ end
 -- get monitors, there must be 2
 local monitors = { peripheral.find("monitor") }
 
-if not #monitors < 2 then
+if #monitors < 2 then
     error("Two monitors required", 0)
 end
 

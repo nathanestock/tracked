@@ -203,18 +203,22 @@ local ticketStation1 = TicketStation:new(monitors[1], config.indicator1)
 local stations = {}
 local stationIds = { rednet.lookup(config.stationProtocal) }
 for _, stationId in pairs(stationIds) do
-    print("Requesting station info from: " .. stationId)
-    -- send station list requests
-    rednet.send(stationId, "_", config.stationListProtocal)
-    local senderId, station, protocol = rednet.receive(config.stationListProtocal, 5)
-    if senderId == stationId and protocol == config.stationListProtocal then
-        print("Recieved station info from: " .. senderId)
-        if station.id == nil or station.index == nil or station.name == nil then
-            print(station)
-        else
-            table.insert(stations, station)
+    if stationId == os.getComputerID() then
+        -- skip self
+    else
+        print("Requesting station info from: " .. stationId)
+        -- send station list requests
+        rednet.send(stationId, "_", config.stationListProtocal)
+        local senderId, station, protocol = rednet.receive(config.stationListProtocal, 5)
+        if senderId == stationId and protocol == config.stationListProtocal then
+            print("Recieved station info from: " .. senderId)
+            if station.id == nil or station.index == nil or station.name == nil then
+                print(station)
+            else
+                table.insert(stations, station)
+            end
         end
-    end
+    end 
 end
 
 ticketStation1:updateStations(stations)

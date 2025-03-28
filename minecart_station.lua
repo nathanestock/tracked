@@ -281,18 +281,18 @@ end
 local indicator1 = peripheral.wrap(config.indicator1)
 local indicator2 = peripheral.wrap(config.indicator2)
 
-local function handleIndicator(indicator, direction, name)
+local function handleIndicator(indicator, name)
     while true do
         local event = os.pullEvent(name)
-        indicator.setOutput(direction, true)
+        indicator.setOutput("bottom", true)
         sleep(3)
-        indicator.setOutput(direction, false)
+        indicator.setOutput("bottom", false)
     end
 end
 
 -- Start the async functions
 parallel.waitForAny(basalt.autoUpdate, function() handleDetectorInput(detector1, config.direction1, control1) end,
     function() handleDetectorInput(detector2, config.direction2, control2) end,
-    function() handleIndicator(indicator1, config.direction2, "indicator1") end,
-    function() handleIndicator(indicator2, config.direction1, "indicator2") end
+    function() handleIndicator(indicator1, "indicator1") end,
+    function() handleIndicator(indicator2, "indicator2") end
 , purgePlayerEntries, handleRednet)

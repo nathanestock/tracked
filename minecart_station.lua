@@ -193,22 +193,14 @@ function TicketStation:new(monitor, indicator)
     local stationWrapper = mainFrame:addScrollableFrame()
         :setPosition(1, "parent.h/2 + 2")
         :setSize("parent.w", "parent.h/2 - 2")
-    local stationList = stationWrapper:addList()
-        :setPosition(1, 1)
-        :setSize("parent.w", "parent.h")
-        :setForeground(colors.white)
-        :setSelectionColor(config.stationColor)
-        :onSelect(function(self, event, item)
-            table.insert(self.parentStation.eventQueue, function()
-                local stopId = item.args[1].id
-                selectStop(stopId)
-                self:selectItem(nil)
-            end)
-        end)
-    stationList.parentStation = self
 
-    local o = { monitor = monitor, mainFrame = mainFrame, ticketList = ticketList, stationList = stationList, indicator =
-    indicator, eventQueue = {} }
+    local o = {
+        monitor = monitor,
+        mainFrame = mainFrame,
+        ticketList = ticketList,
+        stationList = stationWrapper,
+        indicator =
+    indicator }
     setmetatable(o, self)
     self.__index = self
     return o
@@ -222,19 +214,15 @@ function TicketStation:updateTickets()
 end
 
 function TicketStation:updateStations(stations)
-    self.stationList:clear()
+    self.stationList:removeChildren()
     for _, station in ipairs(stations) do
-        self.stationList:addItem(station.name, nil, nil, { id = station.id })
-    end
-end
-
-function TicketStation:processEvents()
-    while true do
-        if #self.eventQueue > 0 then
-            local event = table.remove(self.eventQueue, 1)
-            pcall(event)
-        end
-        sleep(0.1)
+        self.stationList:addButton()
+            :setText(station.name)
+            :setPosition(1, "auto")
+            :setSize("parent.w", 1)
+            :setBackground(colors.gray)
+            :setForeground(colors.white)
+            :onClick(function() selectStop(station.id) end)
     end
 end
 
@@ -277,5 +265,4 @@ end
 
 -- Start the async functions
 parallel.waitForAny(basalt.autoUpdate, function() handleDetectorInput(detector1, config.direction1, control1) end,
-function() handleDetectorInput(detector2, config.direction2, control2) end, purgePlayerEntries, handleRednet,
-    function() ticketStation1:processEvents() end, function() ticketStation2:processEvents() end)
+function() handleDetectorInput(detector2, config.direction2, control2) end, purgePlayerEntries, handleRednet)

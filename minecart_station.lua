@@ -134,7 +134,7 @@ local function purgePlayerEntries()
 end
 
 local function sendTicket(stopId, playerName)
-    print("Sent: " .. playerName .. " | " .. textutils.formatTime(os.time()))
+    print("Sent: " .. playerName .. " | " .. stopId .. " | " .. textutils.formatTime(os.time()))
     rednet.send(stopId, playerName, config.stationProtocal)
 end
 
@@ -219,6 +219,7 @@ function TicketStation:updateStations(stations)
         self.stationList:addButton()
             :setText(station.name)
             :setSize("parent.w", 1)
+            :setPosition(1, _)
             :setBackground(colors.gray)
             :setForeground(colors.white)
             :onClick(function() selectStop(station.id) end)

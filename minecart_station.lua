@@ -84,7 +84,7 @@ end
 if not rednet.isOpen() then
     peripheral.find("modem", rednet.open)
 end
-rednet.host(config.stationProtocal, os.getComputerLabel())
+rednet.host(config.stationProtocal)
 
 local playerList = {}
 
@@ -211,9 +211,10 @@ function TicketStation:updateStations(stations)
     end
 end
 
+-- get monitors, there must be 2
 local monitors = peripheral.find("monitor")
 
-if not (#monitors == 2) then
+if not monitors or #monitors < 2 then
     error("Two monitors required", 0)
 end
 

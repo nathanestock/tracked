@@ -218,7 +218,6 @@ function TicketStation:updateStations(stations)
     for _, station in ipairs(stations) do
         self.stationList:addButton()
             :setText(station.name)
-            :setPosition(1, "auto")
             :setSize("parent.w", 1)
             :setBackground(colors.gray)
             :setForeground(colors.white)

@@ -182,6 +182,7 @@ function TicketStation:new(monitor)
         :setSize("parent.w", "parent.h")
         :setForeground(colors.lightGray)
         :setBackground(colors.gray)
+        :setSelectionColor(colors.gray)
     -- station list
     mainFrame:addLabel()
         :setText("Stations")

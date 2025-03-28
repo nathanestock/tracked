@@ -155,8 +155,8 @@ local function selectStop(stopId)
     end
 end
 
-local TicketStation = { monitor = nil, mainFrame = nil, ticketList = nil, stationList = nil }
-function TicketStation:new(monitor)
+local TicketStation = { monitor = nil, mainFrame = nil, ticketList = nil, stationList = nil, indicator = nil, eventQueue = {} }
+function TicketStation:new(monitor, indicator)
     local mainFrame = basalt.addMonitor()
     mainFrame:setMonitor(monitor)
     -- station name with color background
@@ -199,25 +199,42 @@ function TicketStation:new(monitor)
         :setForeground(colors.white)
         :setSelectionColor(config.stationColor)
         :onSelect(function(self, event, item)
-            local stopId = item.args[1].id
-            selectStop(stopId)
+            table.insert(self.parentStation.eventQueue, function()
+                local stopId = item.args[1].id
+                selectStop(stopId)
+                self:selectItem(nil)
+            end)
         end)
+    stationList.parentStation = self
 
-    local o = { monitor = monitor, mainFrame = mainFrame, ticketList = ticketList, stationList = stationList }
+    local o = { monitor = monitor, mainFrame = mainFrame, ticketList = ticketList, stationList = stationList, indicator =
+    indicator, eventQueue = {} }
     setmetatable(o, self)
     self.__index = self
     return o
 end
+
 function TicketStation:updateTickets()
     self.ticketList:clear()
     for player, timestamp in pairs(playerList) do
         self.ticketList:addItem(player)
     end
 end
+
 function TicketStation:updateStations(stations)
     self.stationList:clear()
     for _, station in ipairs(stations) do
         self.stationList:addItem(station.name, nil, nil, { id = station.id })
+    end
+end
+
+function TicketStation:processEvents()
+    while true do
+        if #self.eventQueue > 0 then
+            local event = table.remove(self.eventQueue, 1)
+            pcall(event)
+        end
+        sleep(0.1)
     end
 end
 
@@ -228,8 +245,8 @@ if #monitors < 2 then
     error("Two monitors required", 0)
 end
 
-local ticketStation1 = TicketStation:new(monitors[1])
-local ticketStation2 = TicketStation:new(monitors[2])
+local ticketStation1 = TicketStation:new(monitors[1], config.indicator1)
+local ticketStation2 = TicketStation:new(monitors[2], config.indicator2)
 
 local stations = {
     { name = config.stationName, id = os.getComputerID() },
@@ -259,4 +276,6 @@ local function handleRednet()
 end
 
 -- Start the async functions
-parallel.waitForAny(basalt.autoUpdate, function() handleDetectorInput(detector1, config.direction1, control1) end, function() handleDetectorInput(detector2, config.direction2, control2) end, purgePlayerEntries, handleRednet)
+parallel.waitForAny(basalt.autoUpdate, function() handleDetectorInput(detector1, config.direction1, control1) end,
+function() handleDetectorInput(detector2, config.direction2, control2) end, purgePlayerEntries, handleRednet,
+    function() ticketStation1:processEvents() end, function() ticketStation2:processEvents() end)

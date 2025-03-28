@@ -13,6 +13,7 @@ local defaultConfig = {
     control2Invert = false,
     indicator2 = "redstone_integrator_0",
     stationProtocal = "minecraft_station",
+    stationListProtocal = "minecraft_station_list",
     playerTimeout = 23 -- in-game hours TODO: fix this, purge doesnt work
 }
 
@@ -198,14 +199,18 @@ end
 local ticketStation1 = TicketStation:new(monitors[1], config.indicator1)
 --local ticketStation2 = TicketStation:new(monitors[2], config.indicator2)
 
-local stations = {
-    { name = config.stationName, id = os.getComputerID(), index = config.stationIndex },
-    { name = "Station 1", id = 1, index = 1 },
-    { name = "Station 2",        id = 2,                 index = 3 },
-    { name = "Station 3", id = 3, index = 4}
-}
+-- fetch station list
+local stations = {}
+local stationIds = rednet.lookup(config.stationProtocal)
+for _, stationId in ipairs(stationIds) do
+    -- send station list requests
+    rednet.send(stationId, "", config.stationListProtocal)
+    local senderId, station, protocol = rednet.receive(config.stationListProtocal)
+    if senderId == stationId then
+        table.insert(stations, station)
+    end
+end
 
--- add test stations
 ticketStation1:updateStations(stations)
 --ticketStation2:updateStations(stations)
 
@@ -221,6 +226,11 @@ local function handleRednet()
             -- update ticket stations
             ticketStation1:updateTickets()
             --ticketStation2:updateTickets()
+        elseif protocol == config.stationListProtocal then
+            -- sent station information
+            rednet.send(senderId,
+            textutils.serialize({ name = config.stationName, id = os.getComputerID(), index = config.stationIndex }),
+                config.stationListProtocal)
         end
     end
 end

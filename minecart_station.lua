@@ -196,6 +196,8 @@ function TicketStation:new(monitor)
         :setSelectionColor(config.stationColor)
         :onSelect(function(self, event, item)
             print(textutils.serialize(item))
+            --[[ local stopId = item.args.id
+            selectStop(stopId) ]]
         end)
 
     local o = { monitor = monitor, mainFrame = mainFrame, ticketList = ticketList, stationList = stationList }
@@ -212,7 +214,7 @@ end
 function TicketStation:updateStations(stations)
     self.stationList:clear()
     for _, station in ipairs(stations) do
-        self.stationList:addItem(station.name, nil, nil, station.id)
+        self.stationList:addItem(station.name, nil, nil, { id = station.id })
     end
 end
 

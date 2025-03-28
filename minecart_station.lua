@@ -134,7 +134,7 @@ local function purgePlayerEntries()
 end
 
 local function sendTicket(stopId, playerName)
-    print("Ticket: " .. playerName .. " | " .. textutils.formatTime(os.time()))
+    print("Sent: " .. playerName .. " | " .. textutils.formatTime(os.time()))
     rednet.send(stopId, playerName, config.stationProtocal)
 end
 
@@ -251,7 +251,7 @@ local function handleRednet()
         local senderId, playerName, protocol = rednet.receive()
         if protocol == config.stationProtocal then
             playerList[playerName] = os.time()
-            print("Ticket: " .. playerName .. " | " .. textutils.formatTime(playerList[playerName]))
+            print("Recieved: " .. playerName .. " | " .. textutils.formatTime(playerList[playerName]))
 
             -- update ticket stations
             ticketStation1:updateTickets()

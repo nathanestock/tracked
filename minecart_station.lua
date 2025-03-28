@@ -303,6 +303,9 @@ local indicator1 = peripheral.wrap(config.indicator1)
 local indicator2 = peripheral.wrap(config.indicator2)
 
 local function handleIndicator(indicator, name)
+    if not indicator then
+        error(name .. "not found", 0)
+    end
     while true do
         local event = os.pullEvent(name)
         indicator.setOutput("bottom", true)

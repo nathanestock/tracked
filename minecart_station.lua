@@ -200,7 +200,7 @@ local stations = {
     { name = config.stationName, id = os.getComputerID(), index = config.stationIndex },
     { name = "Station 1", id = 1, index = 1 },
     { name = "Station 2",        id = 2,                 index = 3 },
-    { name = "Station 3", id = 4}
+    { name = "Station 3", id = 3, index = 4}
 }
 
 -- add test stations

@@ -169,7 +169,7 @@ function TicketStation:new(monitor)
         :setBackground(config.stationColor)
     -- incoming tickets
     mainFrame:addLabel()
-        :setText("Incoming")
+        :setText("Inbound")
         :setPosition(1, 2)
         :setSize("parent.w", 1)
         :setForeground(colors.lightGray)

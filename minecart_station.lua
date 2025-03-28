@@ -194,7 +194,7 @@ if #monitors < 2 then
 end
 
 local ticketStation1 = TicketStation:new(monitors[1], config.indicator1)
-local ticketStation2 = TicketStation:new(monitors[2], config.indicator2)
+--local ticketStation2 = TicketStation:new(monitors[2], config.indicator2)
 
 local stations = {
     { name = config.stationName, id = os.getComputerID(), index = config.stationIndex },
@@ -205,7 +205,7 @@ local stations = {
 
 -- add test stations
 ticketStation1:updateStations(stations)
-ticketStation2:updateStations(stations)
+--ticketStation2:updateStations(stations)
 
 -- Function to handle rednet messages
 local function handleRednet()
@@ -218,7 +218,7 @@ local function handleRednet()
 
             -- update ticket stations
             ticketStation1:updateTickets()
-            ticketStation2:updateTickets()
+            --ticketStation2:updateTickets()
         end
     end
 end
@@ -236,7 +236,7 @@ local function checkForPlayer(control)
 
                 -- update ticket stations
                 ticketStation1:updateTickets()
-                ticketStation2:updateTickets()
+                --ticketStation2:updateTickets()
                 break
             end
         end
@@ -269,7 +269,7 @@ local function purgePlayerEntries()
 
                 -- update ticket stations
                 ticketStation1:updateTickets()
-                ticketStation2:updateTickets()
+                --ticketStation2:updateTickets()
             end
         end
         sleep(60)

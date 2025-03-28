@@ -193,8 +193,6 @@ if #monitors < 2 then
     error("Two monitors required", 0)
 end
 
-print(textutils.serialize(monitors))
-
 local ticketStation1 = TicketStation:new(monitors[1], config.indicator1)
 --local ticketStation2 = TicketStation:new(monitors[2], config.indicator2)
 

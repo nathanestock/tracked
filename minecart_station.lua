@@ -195,6 +195,7 @@ function TicketStation:new(monitor)
         :setSize("parent.w", "parent.h")
         :setSelectionColor(config.stationColor)
         :onSelect(function(self, event, item)
+            print(textutils.serialize(item))
             selectStop(item.id)
         end)
 

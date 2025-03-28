@@ -155,6 +155,17 @@ local function selectStop(stopId)
     end
 end
 
+local function debounce(func)
+    local last = 0
+    return function(...)
+        local now = os.clock()
+        if now - last > 0.5 then
+            last = now
+            return func(...)
+        end
+    end
+end
+
 local TicketStation = { monitor = nil, mainFrame = nil, ticketList = nil, stationList = nil }
 function TicketStation:new(monitor)
     local mainFrame = basalt.addMonitor()
@@ -180,6 +191,8 @@ function TicketStation:new(monitor)
     local ticketList = ticketWrapper:addList()
         :setPosition(1, 1)
         :setSize("parent.w", "parent.h")
+        :setForeground(colors.lightGray)
+        :setBackground(colors.gray)
     -- station list
     mainFrame:addLabel()
         :setText("Stations")
@@ -196,9 +209,8 @@ function TicketStation:new(monitor)
         :setForeground(colors.white)
         :setSelectionColor(config.stationColor)
         :onSelect(function(self, event, item)
-            print(textutils.serialize(event))
             local stopId = item.args[1].id
-            selectStop(stopId)
+            debounce(function () selectStop(stopId) end)
         end)
 
     local o = { monitor = monitor, mainFrame = mainFrame, ticketList = ticketList, stationList = stationList }
@@ -209,7 +221,7 @@ end
 function TicketStation:updateTickets()
     self.ticketList:clear()
     for player, timestamp in pairs(playerList) do
-        self.ticketList:addItem(player .. " | " .. textutils.formatTime(timestamp))
+        self.ticketList:addItem(player)
     end
 end
 function TicketStation:updateStations(stations)

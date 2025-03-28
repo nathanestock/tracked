@@ -84,7 +84,7 @@ end
 if not rednet.isOpen() then
     peripheral.find("modem", rednet.open)
 end
-rednet.host(config.stationProtocal)
+rednet.host(config.stationProtocal, tostring(os.getComputerID()))
 
 local playerList = {}
 

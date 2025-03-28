@@ -196,7 +196,6 @@ function TicketStation:new(monitor)
         :setSelectionColor(config.stationColor)
         :onSelect(function(self, event, item)
             print(textutils.serialize(item))
-            selectStop(item.id)
         end)
 
     local o = { monitor = monitor, mainFrame = mainFrame, ticketList = ticketList, stationList = stationList }

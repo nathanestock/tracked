@@ -1,6 +1,7 @@
 local defaultConfig = {
     stationName = "Station Name",
     stationColor = colors.blue,
+    stationIndex = 1,
     detector1 = "redstone_integrator_0",
     direction1 = "east",
     control1 = "redstone_integrator_0",
@@ -88,51 +89,6 @@ rednet.host(config.stationProtocal, tostring(os.computerID()))
 
 local playerList = {}
 
-local function checkForPlayer(control)
-    -- sense for players
-    local entities = modules.sense()
-    local foundPlayer = false
-    for _, entity in ipairs(entities) do
-        if entity.key == "minecraft:player" then
-            if playerList[entity.name] then
-                foundPlayer = true
-                -- remove player from list
-                playerList[entity.name] = nil
-                break
-            end
-        end
-    end
-
-    if foundPlayer then
-        control:setOutput(true)
-        sleep(0.5)
-        control:setOutput(false)
-    end
-end
-
--- Function to handle detector input
-local function handleDetectorInput(detector, direction, control)
-    control:setOutput(false)
-    while true do
-        if detector.getInput(direction) then
-            checkForPlayer(control)
-        end
-        sleep(0.1)
-    end
-end
-
--- Function to purge old player entries
-local function purgePlayerEntries()
-    while true do
-        for player, timestamp in pairs(playerList) do
-            if os.time() - timestamp > config.playerTimeout then
-                playerList[player] = nil
-            end 
-        end
-        sleep(60)
-    end
-end
-
 local function sendTicket(stopId, playerName)
     print("Sent: " .. playerName .. " | " .. stopId .. " | " .. textutils.formatTime(os.time()))
     rednet.send(stopId, playerName, config.stationProtocal)
@@ -215,6 +171,10 @@ end
 
 function TicketStation:updateStations(stations)
     self.stationList:removeChildren()
+
+    -- sort stations by index
+    table.sort(stations, function(a, b) return a.index < b.index end)
+
     for _, station in ipairs(stations) do
         self.stationList:addButton()
             :setText(station.name)
@@ -237,10 +197,10 @@ local ticketStation1 = TicketStation:new(monitors[1], config.indicator1)
 local ticketStation2 = TicketStation:new(monitors[2], config.indicator2)
 
 local stations = {
-    { name = config.stationName, id = os.getComputerID() },
-    { name = "Station 1", id = 1 },
-    { name = "Station 2",        id = 2 },
-    { name = "Station 3", id = 3}
+    { name = config.stationName, id = os.getComputerID(), index = config.stationIndex },
+    { name = "Station 1", id = 1, index = 1 },
+    { name = "Station 2",        id = 2,                 index = 3 },
+    { name = "Station 3", id = 4}
 }
 
 -- add test stations
@@ -260,6 +220,59 @@ local function handleRednet()
             ticketStation1:updateTickets()
             ticketStation2:updateTickets()
         end
+    end
+end
+
+local function checkForPlayer(control)
+    -- sense for players
+    local entities = modules.sense()
+    local foundPlayer = false
+    for _, entity in ipairs(entities) do
+        if entity.key == "minecraft:player" then
+            if playerList[entity.name] then
+                foundPlayer = true
+                -- remove player from list
+                playerList[entity.name] = nil
+
+                -- update ticket stations
+                ticketStation1:updateTickets()
+                ticketStation2:updateTickets()
+                break
+            end
+        end
+    end
+
+    if foundPlayer then
+        control:setOutput(true)
+        sleep(0.5)
+        control:setOutput(false)
+    end
+end
+
+-- Function to handle detector input
+local function handleDetectorInput(detector, direction, control)
+    control:setOutput(false)
+    while true do
+        if detector.getInput(direction) then
+            checkForPlayer(control)
+        end
+        sleep(0.1)
+    end
+end
+
+-- Function to purge old player entries
+local function purgePlayerEntries()
+    while true do
+        for player, timestamp in pairs(playerList) do
+            if os.time() - timestamp > config.playerTimeout then
+                playerList[player] = nil
+
+                -- update ticket stations
+                ticketStation1:updateTickets()
+                ticketStation2:updateTickets()
+            end
+        end
+        sleep(60)
     end
 end
 

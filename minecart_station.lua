@@ -134,6 +134,7 @@ local function purgePlayerEntries()
 end
 
 local function sendTicket(stopId, playerName)
+    print("Ticket: " .. playerName .. " | " .. textutils.formatTime(os.time()))
     rednet.send(stopId, playerName, config.stationProtocal)
 end
 
@@ -192,6 +193,10 @@ function TicketStation:new(monitor)
     local stationList = stationWrapper:addList()
         :setPosition(1, 1)
         :setSize("parent.w", "parent.h")
+        :setSelectionColor(config.stationColor)
+        :onSelect(function(self, event, item)
+            selectStop(item.id)
+        end)
 
     local o = { monitor = monitor, mainFrame = mainFrame, ticketList = ticketList, stationList = stationList }
     setmetatable(o, self)
@@ -207,7 +212,7 @@ end
 function TicketStation:updateStations(stations)
     self.stationList:clear()
     for _, station in ipairs(stations) do
-        self.stationList:addItem(station)
+        self.stationList:addItem(station.name, nil, nil, station.id)
     end
 end
 
@@ -221,9 +226,16 @@ end
 local ticketStation1 = TicketStation:new(monitors[1])
 local ticketStation2 = TicketStation:new(monitors[2])
 
+local stations = {
+    { name = config.stationName, id = os.getComputerID() },
+    { name = "Station 1", id = 1 },
+    { name = "Station 2",        id = 2 },
+    { name = "Station 3", id = 3}
+}
+
 -- add test stations
-ticketStation1:updateStations({ "Station 1", "Station 2", "Station 3" })
-ticketStation2:updateStations({ "Station 1", "Station 2", "Station 3" })
+ticketStation1:updateStations(stations)
+ticketStation2:updateStations(stations)
 
 -- Function to handle rednet messages
 local function handleRednet()

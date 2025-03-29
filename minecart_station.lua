@@ -219,13 +219,11 @@ local stationInfo = { name = config.stationName, id = os.getComputerID(), index 
 rednet.broadcast(textutils.serialize(stationInfo), config.stationListProtocal)
 
 -- fetch station list
-local stations = {
-    stationInfo
-}
+local stations = {}
 local stationIds = { rednet.lookup(config.stationProtocal) }
 for _, stationId in pairs(stationIds) do
     if stationId == os.getComputerID() then
-        -- skip self
+        table.insert(stations, stationInfo)
     else
         print("Requesting station info from: " .. stationId)
         -- send station list requests

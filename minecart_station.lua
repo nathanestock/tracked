@@ -191,7 +191,7 @@ function TicketStation:updateStations(stations)
                 :setPosition(1, _)
                 :setTextAlign("center")
                 :setForeground(config.stationColor)
-                :setBackground(config.lightGray)
+                :setBackground(colors.lightGray)
         else
             self.stationList:addButton()
                 :setText(station.name)

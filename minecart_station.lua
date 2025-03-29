@@ -14,7 +14,7 @@ local defaultConfig = {
     indicator2 = "redstone_integrator_0",
     stationProtocal = "minecraft_station",
     stationListProtocal = "minecraft_station_list",
-    playerTimeout = 23 -- in-game hours TODO: fix this, purge doesnt work
+    playerTimeout = 300 -- 5 minutes
 }
 
 -- check if basalt is installed, if not install it
@@ -140,7 +140,7 @@ function TicketStation:new(monitor, indicator)
         :setBackground(colors.black)
     local ticketWrapper = mainFrame:addScrollableFrame()
         :setPosition(1, 3)
-        :setSize("parent.w", "parent.h/2 - 2")
+        :setSize("parent.w", "parent.h/3 - 2")
     local ticketList = ticketWrapper:addList()
         :setPosition(1, 1)
         :setSize("parent.w", "parent.h")
@@ -150,13 +150,13 @@ function TicketStation:new(monitor, indicator)
     -- station list
     mainFrame:addLabel()
         :setText("Stations")
-        :setPosition(1, "parent.h/2 + 1")
+        :setPosition(1, "parent.h/3 + 1")
         :setSize("parent.w", 1)
         :setForeground(colors.lightGray)
         :setBackground(colors.black)
     local stationWrapper = mainFrame:addScrollableFrame()
-        :setPosition(1, "parent.h/2 + 2")
-        :setSize("parent.w", "parent.h/2 - 2")
+        :setPosition(1, "parent.h/3 + 2")
+        :setSize("parent.w", "parent.h/3 * 2 - 1")
 
     local o = {
         monitor = monitor,
@@ -186,12 +186,12 @@ function TicketStation:updateStations(stations)
     for _, station in ipairs(stations) do
         if station.id == os.getComputerID() then
             self.stationList:addLabel()
-                :setText(station.name)
+                :setText("* " .. station.name .. " *")
                 :setSize("parent.w", 1)
                 :setPosition(1, _)
                 :setTextAlign("center")
+                :setBackground(colors.gray)
                 :setForeground(config.stationColor)
-                :setBackground(colors.lightGray)
         else
             self.stationList:addButton()
                 :setText(station.name)
@@ -261,7 +261,7 @@ local function handleRednet()
         local senderId, message, protocol = rednet.receive()
         if protocol == config.stationProtocal then
             local playerName = message
-            playerList[playerName] = os.time()
+            playerList[playerName] = os.epoch("utc") / 1000
             print("Recieved: " .. playerName .. " | " .. textutils.formatTime(playerList[playerName]))
 
             updateTickets()
@@ -339,7 +339,7 @@ end
 local function purgePlayerEntries()
     while true do
         for player, timestamp in pairs(playerList) do
-            if os.time() - timestamp > config.playerTimeout then
+            if (os.epoch("utc") / 1000) - timestamp > config.playerTimeout then
                 playerList[player] = nil
 
                 updateTickets()

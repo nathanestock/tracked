@@ -90,14 +90,19 @@ rednet.host(config.stationProtocal, tostring(os.computerID()))
 
 local playerList = {}
 
-local function sendTicket(stopId, playerName)
-    print("Sent: " .. playerName .. " | " .. stopId .. " | " .. textutils.formatTime(os.time()))
-    rednet.send(stopId, playerName, config.stationProtocal)
+local function sendTicket(station, playerName)
+    print("Sent: " .. playerName .. " | " .. station.id .. " | " .. textutils.formatTime(os.time()))
+    rednet.send(station.id, playerName, config.stationProtocal)
 
-    os.queueEvent("indicator1")
+    -- if this index is greater then station index, indicate 1
+    if station.index > config.stationIndex then
+        os.queueEvent("indicator1")
+    else
+        os.queueEvent("indicator2")
+    end
 end
 
-local function selectStop(stopId)
+local function selectStation(station)
     -- sense for players
     local entities = modules.sense()
     local players = {}
@@ -110,7 +115,7 @@ local function selectStop(stopId)
     if #players > 1 then
         -- TODO: handle multiple players
     elseif #players == 1 then
-        sendTicket(stopId, players[1])
+        sendTicket(station, players[1])
     end
 end
 
@@ -176,16 +181,26 @@ function TicketStation:updateStations(stations)
     self.stationList:removeChildren()
 
     -- sort stations by index
-    table.sort(stations, function(a, b) return a.index < b.index end)
+    table.sort(stations, function(a, b) return a.index > b.index end)
 
     for _, station in ipairs(stations) do
-        self.stationList:addButton()
-            :setText(station.name)
-            :setSize("parent.w", 1)
-            :setPosition(1, _)
-            :setBackground(colors.gray)
-            :setForeground(colors.white)
-            :onClick(function() selectStop(station.id) end)
+        if station.id == os.getComputerID() then
+            self.stationList:addLabel()
+                :setText(station.name)
+                :setSize("parent.w", 1)
+                :setPosition(1, _)
+                :setTextAlign("center")
+                :setForeground(colors.stationColor)
+                :setBackground(config.lightGray)
+        else
+            self.stationList:addButton()
+                :setText(station.name)
+                :setSize("parent.w", 1)
+                :setPosition(1, _)
+                :setBackground(colors.gray)
+                :setForeground(colors.white)
+                :onClick(function() selectStation(station) end)
+        end
     end
 end
 
@@ -199,8 +214,14 @@ end
 local ticketStation1 = TicketStation:new(monitors[1], config.indicator1)
 --local ticketStation2 = TicketStation:new(monitors[2], config.indicator2)
 
+-- broadcast station information to other stations
+local stationInfo = { name = config.stationName, id = os.getComputerID(), index = config.stationIndex }
+rednet.broadcast(textutils.serialize(stationInfo), config.stationListProtocal)
+
 -- fetch station list
-local stations = {}
+local stations = {
+    stationInfo
+}
 local stationIds = { rednet.lookup(config.stationProtocal) }
 for _, stationId in pairs(stationIds) do
     if stationId == os.getComputerID() then
@@ -208,7 +229,7 @@ for _, stationId in pairs(stationIds) do
     else
         print("Requesting station info from: " .. stationId)
         -- send station list requests
-        rednet.send(stationId, "_", config.stationListProtocal)
+        rednet.send(stationId, "get_info", config.stationListProtocal)
         local senderId, message, protocol = rednet.receive(config.stationListProtocal, 5)
         if senderId == stationId and protocol == config.stationListProtocal then
             local station = textutils.unserialize(message)
@@ -219,29 +240,64 @@ for _, stationId in pairs(stationIds) do
                 table.insert(stations, station)
             end
         end
-    end 
+    end
 end
 
-ticketStation1:updateStations(stations)
---ticketStation2:updateStations(stations)
+local function updateTickets()
+    ticketStation1:updateTickets()
+    --ticketStation2:updateTickets()
+end
+
+local function updateStations()
+    ticketStation1:updateStations(stations)
+    --ticketStation2:updateStations(stations)
+end
+
+-- init stations
+updateStations()
 
 -- Function to handle rednet messages
 local function handleRednet()
     while true do
         -- Listen for rednet messages
-        local senderId, playerName, protocol = rednet.receive()
+        local senderId, message, protocol = rednet.receive()
         if protocol == config.stationProtocal then
+            local playerName = message
             playerList[playerName] = os.time()
             print("Recieved: " .. playerName .. " | " .. textutils.formatTime(playerList[playerName]))
 
-            -- update ticket stations
-            ticketStation1:updateTickets()
-            --ticketStation2:updateTickets()
+            updateTickets()
         elseif protocol == config.stationListProtocal then
-            -- sent station information
-            rednet.send(senderId,
-            textutils.serialize({ name = config.stationName, id = os.getComputerID(), index = config.stationIndex }),
-                config.stationListProtocal)
+            if message == "get_info" then
+                -- sent station information
+                rednet.send(senderId,
+                textutils.serialize(stationInfo),
+                    config.stationListProtocal)
+            else
+                local station = textutils.unserialize(message)
+                if station.id == nil or station.index == nil or station.name == nil then
+                    print("Unknown: " .. message)
+                else
+                    print("Recieved: " .. station.name)
+                    
+                    -- if station already exists, update it
+                    local found = false
+                    for _, s in ipairs(stations) do
+                        if s.id == station.id then
+                            s.index = station.index
+                            s.name = station.name
+                            found = true
+                            break
+                        end
+                    end
+
+                    if not found then
+                        table.insert(stations, station)
+                    end
+
+                    updateStations()
+                end
+            end
         end
     end
 end
@@ -257,9 +313,7 @@ local function checkForPlayer(control)
                 -- remove player from list
                 playerList[entity.name] = nil
 
-                -- update ticket stations
-                ticketStation1:updateTickets()
-                --ticketStation2:updateTickets()
+                updateTickets()
                 break
             end
         end
@@ -290,9 +344,7 @@ local function purgePlayerEntries()
             if os.time() - timestamp > config.playerTimeout then
                 playerList[player] = nil
 
-                -- update ticket stations
-                ticketStation1:updateTickets()
-                --ticketStation2:updateTickets()
+                updateTickets()
             end
         end
         sleep(60)

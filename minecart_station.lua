@@ -212,7 +212,7 @@ if #monitors < 2 then
 end
 
 local ticketStation1 = TicketStation:new(monitors[1], config.indicator1)
---local ticketStation2 = TicketStation:new(monitors[2], config.indicator2)
+local ticketStation2 = TicketStation:new(monitors[2], config.indicator2)
 
 -- broadcast station information to other stations
 local stationInfo = { name = config.stationName, id = os.getComputerID(), index = config.stationIndex }
@@ -243,12 +243,12 @@ end
 
 local function updateTickets()
     ticketStation1:updateTickets()
-    --ticketStation2:updateTickets()
+    ticketStation2:updateTickets()
 end
 
 local function updateStations()
     ticketStation1:updateStations(stations)
-    --ticketStation2:updateStations(stations)
+    ticketStation2:updateStations(stations)
 end
 
 -- init stations
